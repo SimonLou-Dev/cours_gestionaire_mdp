@@ -1,17 +1,10 @@
-from fastapi import FastAPI, Depends, HTTPException, status, Request, Form
-from fastapi.responses import HTMLResponse
+from fastapi import FastAPI
+
 from fastapi.templating import Jinja2Templates
 from fastapi.staticfiles import StaticFiles
 from itsdangerous import URLSafeTimedSerializer
-from sqlalchemy.orm import Session
 from starlette.middleware.sessions import SessionMiddleware
-from starlette.responses import RedirectResponse
-
-from app import models, services, database
-from app.dto.passwords import PasswordCreate
-from app.database import SessionLocal, engine, Base
-from app.models.user import User
-from app.services import crypto, totp, auth
+from app.database import engine, Base
 
 
 # Database setup

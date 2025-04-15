@@ -7,6 +7,7 @@ class PasswordOut(BaseModel):
     url: str
     email: str
     password: str
+    complexity: int
 
     class Config:
         orm_mode = True  # Très important pour convertir depuis un modèle SQLAlchemy

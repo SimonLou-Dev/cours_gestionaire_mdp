@@ -1,3 +1,5 @@
+import logging
+
 from fastapi import APIRouter, Depends
 from fastapi.params import Form
 from itsdangerous import URLSafeTimedSerializer
@@ -27,10 +29,9 @@ async def add_password(
     if (user := auth.check_session(db, request, serializer)) is None:
         return RedirectResponse(url="/login", status_code=status.HTTP_302_FOUND)
 
-    # Récupérer le salt en session
     aes_key = bytes.fromhex(request.session.get("key"))
 
-    # Enregistrer le mot de passe dans la base de données
+
 
     new_password_entry = PasswordEntry(
         title=title,
@@ -49,6 +50,62 @@ async def add_password(
 
     return RedirectResponse(url="/dashboard", status_code=status.HTTP_302_FOUND)
 
+@vault_router.post("/delete_password/{password_id}")
+async def delete_password(
+    request: Request,
+    password_id: int,
+    db: Session = Depends(database.get_db)
+):
+    # Vérifier la session de l'utilisateur
+    if (user := auth.check_session(db, request, serializer)) is None:
+        return RedirectResponse(url="/login", status_code=status.HTTP_302_FOUND)
+
+    # Récupérer le mot de passe à supprimer
+    password_entry = db.query(PasswordEntry).filter(PasswordEntry.id == password_id).first()
+
+    if not password_entry:
+        return {"message": "Password entry not found"}
+
+    # Supprimer le mot de passe de la DB
+    db.delete(password_entry)
+    db.commit()
+
+    return RedirectResponse(url="/dashboard", status_code=status.HTTP_302_FOUND)
+
+@vault_router.post("/update_password/{password_id}")
+async def update_password(
+    request: Request,
+    password_id: int,
+    title: str = Form(...),
+    password: str = Form(...),
+    username: str = Form(...),
+    email: str = Form(...),
+    url: str = Form(...),
+    db: Session = Depends(database.get_db)
+):
+    # Vérifier la session de l'utilisateur
+    if (user := auth.check_session(db, request, serializer)) is None:
+        return RedirectResponse(url="/login", status_code=status.HTTP_302_FOUND)
+
+    # Récupérer le mot de passe à mettre à jour
+    password_entry = db.query(PasswordEntry).filter(PasswordEntry.id == password_id).first()
+
+    if not password_entry:
+        return {"message": "Password entry not found"}
+
+    aes_key = bytes.fromhex(request.session.get("key"))
+
+    # Mettre à jour les champs
+    password_entry.title = crypto.encrypt_password(title, aes_key)
+    password_entry.encrypted_password = crypto.encrypt_password(password, aes_key)
+    password_entry.username = crypto.encrypt_password(username, aes_key)
+    password_entry.email = crypto.encrypt_password(email, aes_key)
+    password_entry.url = crypto.encrypt_password(url, aes_key)
+
+    # Enregistrer les modifications
+    db.commit()
+
+    return RedirectResponse(url="/dashboard", status_code=status.HTTP_302_FOUND)
 
 
 

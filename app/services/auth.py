@@ -39,7 +39,6 @@ def check_session(db, request, serializer: Serializer)-> User:
 def register_session_cookie(response, user: User, serializer: Serializer):
     # Sérialiser l'ID utilisateur pour le cookie
     user_data = {"user_id": user.id}
-    logging.warn(f"User data: {user_data}")
     session_token = serializer.dumps(obj=user_data)
 
     # Enregistrer le jeton dans un cookie

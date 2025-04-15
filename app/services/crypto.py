@@ -54,7 +54,7 @@ def encrypt_password(password: str, aes_key: bytes) -> str:
     return b64encode(full_data).decode()  # Encodé en base64 pour stocker facilement
 
 # Déchiffrement du mot de passe
-def decrypt_password(encrypted_password: str, user_password: str) -> str:
+def decrypt_password(encrypted_password: str, aes_key: bytes) -> str:
     encrypted_data = b64decode(encrypted_password)
 
     iv = encrypted_data[:16]  # L'IV est dans les 16 premiers octets
