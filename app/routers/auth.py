@@ -1,3 +1,5 @@
+import logging
+
 from fastapi import Depends, status, Request, Form, APIRouter
 from itsdangerous import URLSafeTimedSerializer
 from sqlalchemy.orm import Session
@@ -19,6 +21,7 @@ auth_router = APIRouter()
 def logout(request: Request):
     response = RedirectResponse(url="/login")
     response.delete_cookie("session_token")
+    request.session.clear()  # Supprime toute la session
     return response
 
 
@@ -38,12 +41,18 @@ def login(request: Request, username: str = Form(...), password: str = Form(...)
     if not totp.verify_totp(db_user.totp_secret, totp_token):
         errors.append("Code TOTP invalide.")
 
+    logging.warn(f"Session: {request.session}")
+
     if errors:
         return templates.TemplateResponse("login.html.j2", {"request": request, "errors": errors})
 
     # Authentification réussie
+    aes_key = crypto.derive_key(password, bytes.fromhex(db_user.user_salt))
     response = RedirectResponse(url="/dashboard", status_code=status.HTTP_302_FOUND)
     auth.register_session_cookie(response, db_user, serializer)
+
+    request.session["key"] = aes_key.hex()  # Stocker la clé AES dans la session
+    logging.warn(f"Session login: {request.session}")
 
     # Enregistrer le cookie de session et rediriger l'utilisateur
     return response
@@ -71,14 +80,12 @@ async def register(
     if errors:
         return templates.TemplateResponse("register.html.j2", {"request": request, "errors": errors})
 
-    hashed_password = crypto.hash_password(password)
     totp_secret = totp.generate_totp_secret()
 
     new_user = User(
         username=username,
-        hashed_password=hashed_password,
+        password=password,
         totp_secret=totp_secret,
-
     )
 
     db.add(new_user)
@@ -86,6 +93,9 @@ async def register(
     db.refresh(new_user)
 
     qr_code = totp.generate_qr_code(totp_secret, username)
+
+    aes_key = crypto.derive_key(password, bytes.fromhex(new_user.user_salt))
+    request.session["key"] = aes_key.hex()  # Stocker la clé AES dans la session
 
     return templates.TemplateResponse("register_done.html.j2", {
         "request": request,

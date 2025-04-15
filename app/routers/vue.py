@@ -1,3 +1,5 @@
+from http.client import HTTPException
+
 from fastapi import Depends, status, Request, APIRouter
 from fastapi.responses import HTMLResponse
 from itsdangerous import URLSafeTimedSerializer
@@ -5,6 +7,8 @@ from sqlalchemy.orm import Session
 from starlette.responses import RedirectResponse
 from starlette.templating import Jinja2Templates
 from app import database
+from app.models import PasswordEntry
+from app.models.user import User
 from app.services import auth
 
 
@@ -42,9 +46,29 @@ async def dashboard(request: Request, db: Session = Depends(database.get_db)):
     if auth.check_session(db, request, serializer) is None:
         return RedirectResponse(url="/login", status_code=status.HTTP_302_FOUND)
 
-    user = {} #db.query(User).filter(User.id == 1).first()  # Replace with actual user lookup
-    passwords = [] #db.query(PasswordEntry).filter(PasswordEntry.user_id == user.id).all()
-    return templates.TemplateResponse("dashboard.html.j2", {"request": request, "user": user, "passwords": passwords})
+    # Récupérer le salt en session
+    aes_key = bytes.fromhex(request.session.get("key"))
+
+    # Vérifier si la clé AES est présente dans la session
+    if aes_key is None:
+        return RedirectResponse(url="/login", status_code=status.HTTP_302_FOUND)
+
+
+    user = db.query(User).filter(User.id == 1).first() # Replace with actual user lookup
+
+    # Récupère tous les mots de passe de l'utilisateur
+    passwords = db.query(PasswordEntry).filter(PasswordEntry.user_id == user.id).all()
+
+    # Déchiffre les mots de passe avec la clé AES dérivée de la session
+    decrypted_passwords = [ entry.get_decrypted(aes_key) for entry in passwords ]
+
+    if not aes_key:
+        raise HTTPException(status_code=401, detail="AES key missing from session")
+
+    for password_entry in passwords:
+        decrypted_passwords.append(password_entry.get_decrypted(aes_key))
+
+    return templates.TemplateResponse("dashboard.html.j2", {"request": request, "user": user, "passwords": decrypted_passwords})
 
 
 @view_router.get("/analyze", response_class=HTMLResponse)

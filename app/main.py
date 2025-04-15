@@ -4,6 +4,7 @@ from fastapi.templating import Jinja2Templates
 from fastapi.staticfiles import StaticFiles
 from itsdangerous import URLSafeTimedSerializer
 from sqlalchemy.orm import Session
+from starlette.middleware.sessions import SessionMiddleware
 from starlette.responses import RedirectResponse
 
 from app import models, services, database
@@ -16,6 +17,9 @@ from app.services import crypto, totp, auth
 # Database setup
 Base.metadata.create_all(bind=engine)
 app = FastAPI()
+
+# Register des middleware
+app.add_middleware(SessionMiddleware, secret_key="your-secret-key")
 
 # Include routers
 

@@ -5,7 +5,8 @@ class PasswordOut(BaseModel):
     title: str
     username: str
     url: str
-    category_id: int
+    email: str
+    password: str
 
     class Config:
         orm_mode = True  # Très important pour convertir depuis un modèle SQLAlchemy

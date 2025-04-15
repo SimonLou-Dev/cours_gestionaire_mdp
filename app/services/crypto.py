@@ -37,49 +37,36 @@ def verify_password(stored_hash: str, password: str) -> bool:
 
 
 # Chiffrement du mot de passe avec AES-256 et un code user_password
-def encrypt_password(password: str, user_password: str) -> str:
-    # Générer un salt (sel) aléatoire pour chaque utilisateur
-    salt = os.urandom(16)
+def encrypt_password(password: str, aes_key: bytes) -> str:
+    iv = os.urandom(16)  # Générer un IV unique pour chaque mot de passe
 
-    # Dériver la clé AES à partir du code user_password de l'utilisateur
-    key = derive_key(user_password, salt)
-
-    # Générer un iv (vecteur d'initialisation) aléatoire pour chaque chiffrement
-    iv = os.urandom(16)
-
-    # Compléter le mot de passe pour qu'il soit multiple de 16 (taille de bloc AES)
+    # Padding pour que la longueur soit un multiple de 16 octets (taille de bloc AES)
     padder = padding.PKCS7(128).padder()
-    padded_password = padder.update(password.encode()) + padder.finalize()
+    padded_data = padder.update(password.encode()) + padder.finalize()
 
-    # Créer le chiffreur AES avec la clé et le mode CBC
-    cipher = Cipher(algorithms.AES(key), modes.CBC(iv), backend=default_backend())
+    # Créer le chiffreur AES avec l'IV
+    cipher = Cipher(algorithms.AES(aes_key), modes.CBC(iv), backend=default_backend())
     encryptor = cipher.encryptor()
+    encrypted_data = encryptor.update(padded_data) + encryptor.finalize()
 
-    # Chiffrer le mot de passe
-    encrypted_password = encryptor.update(padded_password) + encryptor.finalize()
-
-    # Retourner le mot de passe chiffré sous forme de base64, avec le salt et l'IV pour pouvoir le déchiffrer plus tard
-    return b64encode(salt + iv + encrypted_password).decode()
-
+    # Concaténer l'IV et le mot de passe chiffré (encrypted_data)
+    full_data = iv + encrypted_data
+    return b64encode(full_data).decode()  # Encodé en base64 pour stocker facilement
 
 # Déchiffrement du mot de passe
 def decrypt_password(encrypted_password: str, user_password: str) -> str:
     encrypted_data = b64decode(encrypted_password)
-    salt = encrypted_data[:16]  # Les 16 premiers octets sont le salt
-    iv = encrypted_data[16:32]  # Les 16 octets suivants sont l'IV
-    encrypted_password_data = encrypted_data[32:]  # Le reste est le mot de passe chiffré
-    key = derive_key(user_password, salt)
 
-    # Créer le déchiffreur AES
-    cipher = Cipher(algorithms.AES(key), modes.CBC(iv), backend=default_backend())
+    iv = encrypted_data[:16]  # L'IV est dans les 16 premiers octets
+    encrypted_content = encrypted_data[16:]  # Le reste est le mot de passe chiffré
+
+    # Créer le déchiffreur AES avec l'IV
+    cipher = Cipher(algorithms.AES(aes_key), modes.CBC(iv), backend=default_backend())
     decryptor = cipher.decryptor()
+    decrypted_padded = decryptor.update(encrypted_content) + decryptor.finalize()
 
-    # Déchiffrer le mot de passe
-    decrypted_password = decryptor.update(encrypted_password_data) + decryptor.finalize()
-
-    # Enlever le padding du mot de passe déchiffré
+    # Supprimer le padding du mot de passe déchiffré
     unpadder = padding.PKCS7(128).unpadder()
-    original_password = unpadder.update(decrypted_password) + unpadder.finalize()
+    data = unpadder.update(decrypted_padded) + unpadder.finalize()
 
-    # Retourner le mot de passe original
-    return original_password.decode()
+    return data.decode()

@@ -1,17 +1,109 @@
-<html>
-<head><title>Tableau de bord</title></head>
-<body>
-  <h2>Mes mots de passe</h2>
-  <form method="post" action="/add-password">
-    <input name="title" placeholder="Nom"><br>
-    <input name="password" placeholder="Mot de passe"><br>
-    <button type="submit">Ajouter</button>
-  </form>
-  <ul>
-    {% for item in passwords %}
-      <li>{{ item.title }}</li>
+{% extends "base.html.j2" %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+  <div class="flex justify-between items-center mb-6">
+    <h1 class="text-3xl font-bold">🔐 Coffre-fort</h1>
+    <button onclick="openModal()" class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-md">
+      ➕ Ajouter
+    </button>
+  </div>
+
+  <input type="text" id="search" placeholder="Rechercher un mot de passe..." 
+         class="w-full p-3 mb-4 border rounded-md shadow" />
+
+  <div id="password-list">
+    {% for entry in passwords %}
+      <div class="bg-white rounded-xl shadow p-4 mb-4 flex justify-between items-center">
+        <div>
+          <h2 class="text-xl font-semibold">{{ entry.title }}</h2>
+          <p class="text-sm text-gray-600">Catégorie : {{ entry.category or "Aucune" }}</p>
+        </div>
+        <div class="flex items-center space-x-3">
+          <input type="text" id="pass-{{ loop.index }}" value="{{ entry.password }}" readonly 
+                 class="hidden" />
+          <button onclick="copyToClipboard('pass-{{ loop.index }}')" 
+                  class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-md">
+            Copier
+          </button>
+        </div>
+      </div>
+    {% else %}
+      <p class="text-gray-500 text-center">Aucun mot de passe trouvé.</p>
     {% endfor %}
-  </ul>
-  <a href="/analyze">Analyser les mots de passe</a>
-</body>
-</html>
+  </div>
+</div>
+
+<!-- MODAL -->
+<div id="addModal" class="fixed inset-0 bg-black bg-opacity-50 hidden justify-center items-center z-50">
+  <div class="bg-white rounded-lg w-full max-w-md p-6">
+    <h2 class="text-xl font-bold mb-4">Ajouter un mot de passe</h2>
+    <form method="post" action="/add_password">
+      <div class="mb-4">
+        <label class="block mb-1 font-medium">Titre</label>
+        <input type="text" name="title" required class="w-full border rounded-md p-2" />
+      </div>
+      <div class="mb-4">
+        <label class="block mb-1 font-medium">Url</label>
+        <input type="text" name="url" required class="w-full border rounded-md p-2" />
+      </div>
+      <div class="mb-4">
+        <label class="block mb-1 font-medium">username</label>
+        <input type="text" name="username" required class="w-full border rounded-md p-2" />
+      </div>
+      <div class="mb-4">
+        <label class="block mb-1 font-medium">email</label>
+        <input type="text" name="email" required class="w-full border rounded-md p-2" />
+      </div>
+      <div class="mb-4">
+        <label class="block mb-1 font-medium">Mot de passe</label>
+        <input type="text" name="password" required class="w-full border rounded-md p-2" />
+      </div>
+
+      <div class="flex justify-end space-x-2">
+        <button type="button" onclick="closeModal()" class="bg-gray-300 px-4 py-2 rounded-md">
+          Annuler
+        </button>
+        <button type="submit" class="bg-green-500 text-white px-4 py-2 rounded-md">
+          Enregistrer
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+  const searchInput = document.getElementById('search');
+  searchInput.addEventListener('input', function () {
+    const filter = searchInput.value.toLowerCase();
+    const cards = document.querySelectorAll('#password-list > div');
+
+    cards.forEach(card => {
+      const title = card.querySelector('h2').textContent.toLowerCase();
+      card.style.display = title.includes(filter) ? "flex" : "none";
+    });
+  });
+
+  function copyToClipboard(inputId) {
+    const input = document.getElementById(inputId);
+    input.classList.remove("hidden");
+    input.select();
+    document.execCommand("copy");
+    input.classList.add("hidden");
+
+    setTimeout(() => {
+      navigator.clipboard.writeText('');
+    }, 15000);
+  }
+
+  function openModal() {
+    document.getElementById('addModal').classList.remove('hidden');
+    document.getElementById('addModal').classList.add('flex');
+  }
+
+  function closeModal() {
+    document.getElementById('addModal').classList.add('hidden');
+    document.getElementById('addModal').classList.remove('flex');
+  }
+</script>
+{% endblock %}
