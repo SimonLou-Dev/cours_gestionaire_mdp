@@ -1,4 +1,6 @@
 from sqlalchemy import Column, Integer, String, LargeBinary
+from sqlalchemy.orm import relationship
+
 from app.database import Base
 
 class User(Base):
@@ -9,5 +11,4 @@ class User(Base):
     hashed_password = Column(String, nullable=False)
     totp_secret = Column(String, nullable=False)
 
-    hashed_pin = Column(String, nullable=False)
-    encrypted_aes_key = Column(LargeBinary, nullable=False)
+    passwords = relationship("PasswordEntry", back_populates="owner", cascade="all, delete")

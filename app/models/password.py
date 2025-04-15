@@ -19,14 +19,14 @@ class PasswordEntry(Base):
     user_id = Column(Integer, ForeignKey("users.id"))
     category_id = Column(Integer, ForeignKey("categories.id"), nullable=True)
 
-    user = relationship("User", back_populates="passwords")
+    owner = relationship("User", back_populates="passwords")
     category = relationship("Category")
 
     def __init__(self, title: str, password: str, category: Category, user: User, user_password: str):
         self.title = title
         self.encrypted_password = crypto.encrypt_password(password, user_password)
         self.category = category
-        self.user = user
+        self.owner = user
 
     def get_decrypted_password(self, user_password: str) -> str:
         return crypto.decrypt_password(self.encrypted_password, user_password)
