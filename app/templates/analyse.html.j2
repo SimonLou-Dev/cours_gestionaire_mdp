@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html>
+<head><title>Analyse</title></head>
+<body>
+  <h2>Analyse des mots de passe</h2>
+  <ul>
+    {% for entry in analysis.entries %}
+      <li>{{ entry.title }} - {{ entry.strength }}</li>
+    {% endfor %}
+  </ul>
+  <h3>Doublons :</h3>
+  <ul>
+    {% for dup in analysis.duplicates %}
+      <li>{{ dup }}</li>
+    {% endfor %}
+  </ul>
+  <a href="/dashboard">Retour</a>
+</body>
+</html>

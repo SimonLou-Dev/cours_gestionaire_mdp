@@ -1,0 +1,17 @@
+<html>
+<head><title>Tableau de bord</title></head>
+<body>
+  <h2>Mes mots de passe</h2>
+  <form method="post" action="/add-password">
+    <input name="title" placeholder="Nom"><br>
+    <input name="password" placeholder="Mot de passe"><br>
+    <button type="submit">Ajouter</button>
+  </form>
+  <ul>
+    {% for item in passwords %}
+      <li>{{ item.title }}</li>
+    {% endfor %}
+  </ul>
+  <a href="/analyze">Analyser les mots de passe</a>
+</body>
+</html>

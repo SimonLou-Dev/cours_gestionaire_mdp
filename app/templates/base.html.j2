@@ -1,0 +1,33 @@
+{# base.html #}
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}Application de Gestion de Mots de Passe{% endblock %}</title>
+  <script src="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.js"></script>
+</head>
+<body class="bg-gray-100 text-gray-900">
+  <nav class="bg-blue-600 p-4">
+    <div class="flex justify-between items-center">
+      <a href="/" class="text-white font-semibold text-xl">Password Vault</a>
+      <div class="space-x-4">
+        <a href="/" class="text-white">Se connecter</a>
+        <a href="/register" class="text-white">S'inscrire</a>
+        <a href="/dashboard" class="text-white">Tableau de bord</a>
+      </div>
+    </div>
+  </nav>
+
+  <main class="container mx-auto my-6 p-6 bg-white rounded-lg shadow-lg">
+    {% block content %}
+    {% endblock %}
+  </main>
+
+  <footer class="bg-gray-800 text-white p-4 mt-6">
+    <div class="text-center">
+      <p>&copy; 2025 Password Vault. Tous droits réservés.</p>
+    </div>
+  </footer>
+</body>
+</html>
