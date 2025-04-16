@@ -1,5 +1,8 @@
+from datetime import datetime, timedelta
 from typing import Any
-from sqlalchemy import Column, Integer, String, ForeignKey
+
+import uuid
+from sqlalchemy import Column, Integer, String, ForeignKey, DateTime, Boolean, UUID
 from sqlalchemy.orm import relationship
 from app.database import Base
 from app.dto.passwords import PasswordOut
@@ -43,3 +46,22 @@ class PasswordEntry(Base):
         )
 
 
+class SharedPasswordEntry(Base):
+    __tablename__ = "shared_password_entries"
+
+    id = Column(Integer, primary_key=True, index=True)
+    uuid = Column(UUID(as_uuid=True), default=uuid.uuid4, unique=True, index=True, nullable=False)
+
+    # Données chiffrées
+    encrypted_title = Column(String, nullable=False)
+    encrypted_username = Column(String, nullable=False)
+    encrypted_email = Column(String, nullable=False)
+    encrypted_password = Column(String, nullable=False)
+    encrypted_url = Column(String, nullable=True)
+
+    # Métadonnées
+    expiry_date = Column(DateTime, nullable=False)
+    original_entry_id = Column(Integer, ForeignKey("passwords.id"))
+
+    # Identifiant unique pour le système de partage
+    share_token_id = Column(String, nullable=False)  # Un identifiant pour retrouver le token, pas le token lui-même

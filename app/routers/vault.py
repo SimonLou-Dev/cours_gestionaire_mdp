@@ -1,7 +1,7 @@
 import logging
 import multiprocessing
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException
 from fastapi.params import Form
 from itsdangerous import URLSafeTimedSerializer
 from sqlalchemy.orm import Session
@@ -106,6 +106,8 @@ async def update_password(
     password_entry.url = crypto.encrypt_password(url, aes_key)
     password_entry.complexity = password_utils.calculate_password_strength(password)
 
+    # TODO s'il i ya des share les update
+
     # Enregistrer les modifications
     db.commit()
 
@@ -149,6 +151,42 @@ async def generator(
 
     return templates.TemplateResponse("generator.html.j2", {"request": request, "criteria": { "length": length, "num_passwords": "on" if num_passwords else "off", "use_special_chars": "on" if use_special_chars else "off", "use_digits": "on" if use_digits else "off", "use_uppercase": "on" if use_uppercase  else "off", "use_lowercase": "on" if use_lowercase else "off" }, "passwords": passwords})
 
+@vault_router.post("/passwords/{password_id}/share")
+async def share_password(
+    request: Request,
+    password_id: int,
+    validity_hours: int = Form(...),
+    db: Session = Depends(database.get_db)
+):
+    if (user := auth.check_session(db, request, serializer)) is None:
+        return RedirectResponse(url="/login", status_code=status.HTTP_302_FOUND)
 
+    # Vérifier que l'entrée appartient à l'utilisateur
+    password_entry = db.query(PasswordEntry).filter(
+        PasswordEntry.id == password_id,
+        PasswordEntry.user_id == user.id
+    ).first()
+
+    if not password_entry:
+        raise HTTPException(status_code=404, detail="Entrée de mot de passe introuvable")
+
+    # Récupérér la clée de l'user
+    aes_key = bytes.fromhex(request.session.get("key"))
+
+    if not aes_key:
+        raise HTTPException(status_code=401, detail="AES key missing from session")
+
+    shared_entry, token = crypto.encrypt_shared_password(
+        password_entry=password_entry,
+        aes_key=aes_key,
+        db=db,
+        validity_hours=validity_hours
+    )
+
+    share_link = f"{request.base_url}/share/{shared_entry.uuid}/{token}"
+
+    return {"share_link": share_link, "expiry_date": shared_entry.expiry_date}
+
+# TODO faire le retrieve de pass
 
 
