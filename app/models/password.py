@@ -4,7 +4,7 @@ from sqlalchemy.orm import relationship
 from app.database import Base
 from app.dto.passwords import PasswordOut
 from app.models.user import User
-from app.services import crypto, strength_calculator
+from app.services import crypto, password_utils
 
 
 class PasswordEntry(Base):
@@ -27,7 +27,7 @@ class PasswordEntry(Base):
         self.username = crypto.encrypt_password(username, aes_key)
         self.email = crypto.encrypt_password(email, aes_key)
         self.url = crypto.encrypt_password(url, aes_key)
-        self.complexity = strength_calculator.calculate_password_strength(password)
+        self.complexity = password_utils.calculate_password_strength(password)
         self.owner = user
 
 

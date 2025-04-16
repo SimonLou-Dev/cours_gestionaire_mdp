@@ -8,5 +8,12 @@
       <jdbc-url>jdbc:sqlite:C:\Users\simsi\Documents\dev\cours_gestionaire_mdp\database.db</jdbc-url>
       <working-dir>$ProjectFileDir$</working-dir>
     </data-source>
+    <data-source source="LOCAL" name="vault.db" uuid="93d06d0c-122a-432e-9fac-c7944490ac45">
+      <driver-ref>sqlite.xerial</driver-ref>
+      <synchronize>true</synchronize>
+      <jdbc-driver>org.sqlite.JDBC</jdbc-driver>
+      <jdbc-url>jdbc:sqlite:$PROJECT_DIR$/vault.db</jdbc-url>
+      <working-dir>$ProjectFileDir$</working-dir>
+    </data-source>
   </component>
 </project>

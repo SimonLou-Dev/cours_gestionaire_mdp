@@ -75,3 +75,7 @@ async def analyze(request: Request, db: Session = Depends(database.get_db)):
     entries = {} #db.query(models.PasswordEntry).filter(models.PasswordEntry.user_id == user.id).all()
     analysis = {} #services.password_utils.analyze_passwords(entries)
     return templates.TemplateResponse("analyze.html.j2", {"request": request, "analysis": analysis})
+
+@view_router.get("/generator", response_class=HTMLResponse)
+def generator(request: Request, db: Session = Depends(database.get_db)):
+    return templates.TemplateResponse("generator.html.j2", {"request": request, "criteria": { "length": 16, "use_special_chars": "on", "use_digits": "on", "use_uppercase": "on", "use_lowercase": "on", "num_passwords": 5 }, "password": []})

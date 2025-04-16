@@ -9,97 +9,111 @@
     </button>
   </div>
 
-  <input type="text" id="search" placeholder="Rechercher un mot de passe..." 
-         class="w-full p-3 mb-4 border rounded-md shadow" />
 
-  <div id="password-list">
-  {% for entry in passwords %}
-    <div class="bg-white rounded-xl shadow p-4 mb-4 flex justify-between items-center">
-      <div>
-        <h2 class="text-xl font-semibold">{{ entry.title }}</h2>
-        <p class="text-sm text-gray-600">Utilisateur : {{ entry.username or "Non défini" }}</p>
-        <p class="text-sm text-gray-600">Email : {{ entry.email or "Non défini" }}</p>
-      </div>
-      <div class="flex items-center space-x-3">
-        <span class="text-sm font-medium">
-            Criticité :
-            {% if entry.criticity == 0 %}
-              Très faible
-            {% elif entry.criticity == 1 %}
-              Faible
-            {% elif entry.criticity == 2 %}
-              Moyen
-            {% elif entry.criticity == 3 %}
-              Fort
-            {% elif entry.criticity == 4 %}
-              Très fort
-            {% endif %}
-          </span>
-        <button onclick="copyToClipboard('pass-{{ loop.index }}')"
-                class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-md">
-          Copier
-        </button>
-
-        {% if entry.url %}
-          <a href="{{ entry.url }}" target="_blank"
-             class="bg-yellow-500 hover:bg-yellow-600 text-white px-4 py-2 rounded-md">
-            Aller à l'URL
-          </a>
-        {% endif %}
-
-        <!-- Boutons Modifier et Supprimer -->
-        <button onclick="editPassword({{ entry.id }}, '{{ entry.title }}', '{{ entry.url }}', '{{ entry.username }}', '{{ entry.email }}', '{{ entry.password }}')"
-                class="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-md">
-          Modifier
-        </button>
-
-        <button onclick="deletePassword({{ entry.id }})"
-                class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-md">
-          Supprimer
-        </button>
-      </div>
-    </div>
-  {% else %}
-    <p class="text-gray-500 text-center">Aucun mot de passe trouvé.</p>
-  {% endfor %}
+<div class="overflow-x-auto">
+  <table class="w-full table-auto border-collapse shadow rounded-xl bg-white">
+    <thead class="bg-gray-100 text-left text-gray-700">
+      <tr>
+        <th class="p-3">Titre</th>
+        <th class="p-3">Utilisateur</th>
+        <th class="p-3">Email</th>
+        <th class="p-3">Mot de passe</th>
+        <th class="p-3">Criticité</th>
+        <th class="p-3">Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for entry in passwords %}
+      <tr class="border-t">
+        <td class="p-3 font-medium">{{ entry.title }}</td>
+        <td class="p-3">{{ entry.username or "—" }}</td>
+        <td class="p-3">{{ entry.email or "—" }}</td>
+        <td class="p-3">
+          <div class="flex items-center space-x-2">
+            <input type="password" id="pass-{{ loop.index }}" value="{{ entry.password }}" readonly class="bg-gray-100 rounded px-2 py-1 w-32 text-sm" />
+            <button onclick="togglePassword('pass-{{ loop.index }}')" class="text-gray-600 hover:text-gray-900" title="Afficher">
+              <i data-lucide="eye"></i>
+            </button>
+            <button onclick="copyToClipboard({{ loop.index }})" id="copy-pass-{{ loop.index }}" class="text-blue-600 hover:text-blue-800" title="Copier">
+              <i data-lucide="copy"></i>
+            </button>
+          </div>
+        </td>
+        <td class="p-3">
+          <div class="h-2 rounded-full w-24 bg-gray-200">
+            <div class="h-full rounded-full" style="
+              width: {{ entry.complexity * 25 }}%;
+              background-color:
+                {% if entry.complexity == 0 %}#ef4444{% elif entry.complexity == 1 %}#f97316
+                {% elif entry.complexity == 2 %}#eab308{% elif entry.complexity == 3 %}#10b981
+                {% else %}#059669{% endif %};
+            "></div>
+          <p class="text-center" style="
+                color:
+                {% if entry.complexity == 0 %}#ef4444{% elif entry.complexity == 1 %}#f97316
+                {% elif entry.complexity == 2 %}#eab308{% elif entry.complexity == 3 %}#10b981
+                {% else %}#059669{% endif %};
+        ">{% if entry.complexity == 0 %} très faible {% elif entry.complexity == 1 %} faible {% elif entry.complexity == 2 %} modéré  {% elif entry.complexity == 3 %} fort {% else %} très fort {% endif %}</p>
+          </div>
+        </td>
+        <td class="p-3 space-x-2 flex items-center">
+          {% if entry.url %}
+            <a href="{{ entry.url }}" target="_blank" class="text-yellow-600 hover:text-yellow-800" title="Aller à l'URL">
+              <i data-lucide="link"></i>
+            </a>
+          {% endif %}
+          <button onclick="editPassword({{ entry.id }}, '{{ entry.title }}', '{{ entry.url }}', '{{ entry.username }}', '{{ entry.email }}', '{{ entry.password }}')" class="text-orange-600 hover:text-orange-800" title="Modifier">
+            <i data-lucide="edit-3"></i>
+          </button>
+          <button onclick="deletePassword({{ entry.id }})" class="text-red-600 hover:text-red-800" title="Supprimer">
+            <i data-lucide="trash-2"></i>
+          </button>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
 </div>
 
 
 </div>
 
 <!-- MODAL -->
+<!-- MODAL -->
 <div id="addModal" class="fixed inset-0 bg-black bg-opacity-50 hidden justify-center items-center z-50">
-  <div class="bg-white rounded-lg w-full max-w-md p-6">
-    <h2 class="text-xl font-bold mb-4">Ajouter un mot de passe</h2>
-    <form method="post" action="/add_password">
+  <div class="bg-white rounded-2xl w-full max-w-lg p-6 shadow-xl relative">
+    <h2 class="text-2xl font-semibold mb-4 flex items-center gap-2">
+      <i data-lucide="lock"></i> Gérer un mot de passe
+    </h2>
+    <form method="post" action="/add_password" id="passwordForm">
       <div class="mb-4">
-        <label class="block mb-1 font-medium">Titre</label>
+        <label class="block mb-1 font-medium">🔖 Titre</label>
         <input type="text" name="title" required class="w-full border rounded-md p-2" />
       </div>
       <div class="mb-4">
-        <label class="block mb-1 font-medium">Url</label>
-        <input type="text" name="url" class="w-full border rounded-md p-2" />
+        <label class="block mb-1 font-medium">🔗 URL</label>
+        <input type="url" name="url" class="w-full border rounded-md p-2" />
       </div>
       <div class="mb-4">
-        <label class="block mb-1 font-medium">Username</label>
+        <label class="block mb-1 font-medium">👤 Nom d'utilisateur</label>
         <input type="text" name="username" class="w-full border rounded-md p-2" />
       </div>
       <div class="mb-4">
-        <label class="block mb-1 font-medium">Email</label>
-        <input type="text" name="email" class="w-full border rounded-md p-2" />
+        <label class="block mb-1 font-medium">📧 Email</label>
+        <input type="email" name="email" class="w-full border rounded-md p-2" />
       </div>
       <div class="mb-4">
-        <label class="block mb-1 font-medium">Mot de passe</label>
-        <div class="relative">
-          <input type="password" name="password" required class="w-full border rounded-md p-2" id="passwordInput" />
-          <button type="button" onclick="togglePassword()" class="absolute top-2 right-2 text-gray-500">
-            👁️
+        <label class="block mb-1 font-medium">🔑 Mot de passe</label>
+        <div class="relative flex items-center">
+          <input type="password" name="password" id="passwordInput" required class="w-full border rounded-md p-2 pr-10" />
+          <button type="button" onclick="togglePasswordVisibility('passwordInput')" class="absolute right-2 text-gray-500 hover:text-gray-700">
+            <i data-lucide="eye"></i>
           </button>
         </div>
       </div>
 
-      <div class="flex justify-end space-x-2">
-        <button type="button" onclick="closeModal()" class="bg-gray-300 px-4 py-2 rounded-md">
+      <div class="flex justify-end gap-2 mt-6">
+        <button type="button" onclick="closeModal()" class="bg-gray-300 text-gray-800 px-4 py-2 rounded-md">
           Annuler
         </button>
         <button type="submit" class="bg-green-500 text-white px-4 py-2 rounded-md">
@@ -111,26 +125,14 @@
 </div>
 
 
+
 <script>
-  const searchInput = document.getElementById('search');
-  searchInput.addEventListener('input', function () {
-    const filter = searchInput.value.toLowerCase();
-    const cards = document.querySelectorAll('#password-list > div');
-
-    cards.forEach(card => {
-      const title = card.querySelector('h2').textContent.toLowerCase();
-      card.style.display = title.includes(filter) ? "flex" : "none";
-    });
-  });
-
   function deletePassword(passwordId) {
   const confirmDelete = confirm("Êtes-vous sûr de vouloir supprimer ce mot de passe ?");
   if (confirmDelete) {
     var form = document.createElement("form");
     form.method = "POST";
     form.action = "/delete_password/" + passwordId;
-
-    form.appendChild(methodField);
 
     // Ajouter le formulaire à la page et soumettre
     document.body.appendChild(form);
@@ -153,19 +155,37 @@ function editPassword(passwordId, title, url, username, email, password) {
     document.querySelector('form').action = `/update_password/${passwordId}`;
 }
 
-
-  // Fonction pour copier le mot de passe
-function copyToClipboard(inputId) {
+function togglePassword(inputId) {
   const input = document.getElementById(inputId);
-  input.classList.remove("hidden");
+  input.type = input.type === "password" ? "text" : "password";
+}
+
+function copyToClipboard(inputId) {
+  const input = document.getElementById("pass-" + inputId);
+  if(input.type === "password")
+      togglePasswordVisibility("pass-" + inputId);
   input.select();
   document.execCommand("copy");
-  input.classList.add("hidden");
+  togglePasswordVisibility("pass-" + inputId);
+
+  // ✅ confirmation visuelle
+  const icon = document.getElementById("copy-pass-" + inputId);
+  icon.setAttribute('data-lucide', 'check');
+  lucide.createIcons();
 
   setTimeout(() => {
-    navigator.clipboard.writeText('');
-  }, 15000);
+    const iconBack  = document.getElementById("copy-pass-" + inputId);
+    iconBack .setAttribute('data-lucide', 'copy');
+    lucide.createIcons();
+  }, 1500);
+
 }
+
+window.addEventListener('load', () => {
+  lucide.createIcons(); // charge les icônes
+});
+
+
 
 // Fonction pour afficher ou masquer le mot de passe dans le tableau
 function togglePasswordVisibility(inputId) {
@@ -174,12 +194,6 @@ function togglePasswordVisibility(inputId) {
   input.type = type;
 }
 
-// Fonction pour afficher/masquer le mot de passe dans la popup
-function togglePassword() {
-  const passwordInput = document.getElementById('passwordInput');
-  const type = passwordInput.type === "password" ? "text" : "password";
-  passwordInput.type = type;
-}
 
   function openModal() {
     document.getElementById('addModal').classList.remove('hidden');

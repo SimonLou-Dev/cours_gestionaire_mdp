@@ -6,13 +6,17 @@ from itsdangerous import URLSafeTimedSerializer
 from starlette.middleware.sessions import SessionMiddleware
 from app.database import engine, Base
 
+# Imports des modèles pour créer les tables
+from app.models.user import User
+from app.models.password import PasswordEntry
 
-# Database setup
-Base.metadata.create_all(bind=engine)
 app = FastAPI()
 
 # Register des middleware
 app.add_middleware(SessionMiddleware, secret_key="your-secret-key")
+
+# Database setup
+Base.metadata.create_all(bind=engine)
 
 # Include routers
 

@@ -1,0 +1,89 @@
+{% extends "base.html.j2" %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <h1 class="text-3xl font-bold mb-6">Génération de Mots de Passe 🔑</h1>
+
+    <!-- Formulaire de sélection des critères -->
+    <form id="password-form" class="bg-white rounded-xl shadow p-6" method="post" action="/generator">
+        <div class="mb-4">
+            <label for="length" class="block text-sm font-medium text-gray-700">Longueur du mot de passe</label>
+            <input type="range" id="length" name="length" min="8" max="32" value="{{ criteria['length'] }}"
+                   class="w-full mt-1" oninput="updateLengthValue(this)">
+            <span id="length-value" class="text-sm font-medium text-gray-700 ml-2">12</span>
+        </div>
+
+        <div class="mb-4">
+            <label for="num_passwords" class="block text-sm font-medium text-gray-700">Nombre de mots de passe</label>
+            <input type="range" id="num_passwords" name="num_passwords" min="1" max="10" value="{{ criteria.num_passwords  }}"
+                   class="w-full mt-1" oninput="updateNumPasswordsValue(this)">
+            <span id="num-passwords-value" class="text-sm font-medium text-gray-700 ml-2">5</span>
+        </div>
+
+        <div class="mb-4">
+            <label class="block text-sm font-medium text-gray-700">Critères</label>
+            <div class="flex items-center space-x-4">
+                <div>
+                    <input type="checkbox" id="use_special_chars" name="use_special_chars" {% if criteria.use_special_chars == "on" %} checked {% endif %}  class="mr-2">
+                    <label for="use_special_chars">Caractères spéciaux</label>
+                </div>
+                <div>
+                    <input type="checkbox" id="use_digits" name="use_digits" {% if criteria.use_digits == "on" %}  checked {% endif %} class="mr-2">
+                    <label for="use_digits">Chiffres</label>
+                </div>
+                <div>
+                    <input type="checkbox" id="use_uppercase" name="use_uppercase" {% if criteria.use_uppercase == "on" %}  checked {% endif %} class="mr-2">
+                    <label for="use_uppercase">Majuscules</label>
+                </div>
+                <div>
+                    <input type="checkbox" id="use_lowercase" name="use_lowercase" {% if criteria.use_lowercase == "on" %}  checked {% endif %} class="mr-2">
+                    <label for="use_lowercase">Minuscules</label>
+                </div>
+            </div>
+        {% if errors %}
+        <ul class="mt-4 text-red-500 text-center">
+            {% for error in errors %}
+            <li>{{ error }}</li>
+            {% endfor %}
+        </ul>
+        {% endif %}
+
+
+        </div>
+
+        <button type="submit" class="bg-blue-500 text-white px-4 py-2 rounded-md">Générer les Mots de Passe</button>
+    </form>
+
+    <!-- Affichage des mots de passe générés -->
+    <div id="passwords-list" class="mt-6">
+        <h2 class="text-xl font-semibold mb-4">Mots de Passe Générés</h2>
+        <ul id="passwords" class="space-y-4">
+            {% for password in passwords %}
+            	<li>{{ password }}</li>
+            {% endfor %}
+
+        </ul>
+    </div>
+</div>
+<script>
+
+
+
+  function updateLengthValue(input) {
+    document.getElementById("length-value").textContent = input.value;
+  }
+
+  function updateNumPasswordsValue(input) {
+    document.getElementById("num-passwords-value").textContent = input.value;
+  }
+
+  window.addEventListener('load', () => {
+    // Mettre à jour les valeurs initiales
+    document.getElementById("length-value").textContent = document.getElementById("length").value;
+    document.getElementById("num-passwords-value").textContent = document.getElementById("num_passwords").value;
+  });
+
+
+</script>
+
+{% endblock %}
