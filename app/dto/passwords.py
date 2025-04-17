@@ -1,6 +1,22 @@
+"""Classe avec les DTO pour les MDP."""
+
 from pydantic import BaseModel
 
+
 class PasswordOut(BaseModel):
+    """DTO utilisé lors de la récupération d'un mot de passe.
+
+    Attributs :
+        id (int) : Identifiant unique de l'entrée de mot de passe.
+        title (str) : Titre de l'entrée de mot de passe.
+        username (str) : Nom d'utilisateur associé à l'entrée.
+        url (str) : URL du service associé.
+        email (str) : Adresse e-mail liée à l'entrée.
+        password (str) : Mot de passe déchiffré.
+        complexity (int) : Indicateur de la complexité du mot de passe.
+
+    """
+
     id: int
     title: str
     username: str
@@ -10,11 +26,11 @@ class PasswordOut(BaseModel):
     complexity: int
 
     class Config:
-        from_attributes = True
+        """Permet de convertir les attributs de la classe en dictionnaire.
 
-class PasswordCreate(BaseModel):
-    title: str
-    username: str
-    password: str
-    url: str
-    category_id: int
+        Attributs :
+
+            orm_mode (bool) : Indique que le modèle doit être compatible avec les objets ORM.
+        """
+
+        from_attributes = True
