@@ -4,9 +4,6 @@ from sqlalchemy import Column, Integer, String, LargeBinary
 from sqlalchemy.orm import relationship
 
 from app.database import Base
-from app.services import crypto
-
-
 class User(Base):
     __tablename__ = "users"
 
@@ -20,6 +17,7 @@ class User(Base):
 
     def __init__(self, username: str, password: str, totp_secret: str):
         self.username = username
-        self.hashed_password = crypto.hash_password(password)
+        from app.services.crypto import PasswordEncryption
+        self.hashed_password = PasswordEncryption.hash_password(password)
         self.totp_secret = totp_secret
         self.user_salt = os.urandom(16).hex()

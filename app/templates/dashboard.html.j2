@@ -4,7 +4,7 @@
 <div class="container mx-auto px-4 py-8">
   <div class="flex justify-between items-center mb-6">
     <h1 class="text-3xl font-bold">🔐 Coffre-fort</h1>
-    <button onclick="openModal()" class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-md">
+    <button onclick="openModal('addModal')" class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-md">
       ➕ Ajouter
     </button>
   </div>
@@ -62,12 +62,18 @@
               <i data-lucide="link"></i>
             </a>
           {% endif %}
+            <button onclick="sharePassword('{{ entry.title }}', {{ entry.id }})"
+              class="text-blue-500 hover:text-blue-700 flex items-center gap-1"
+            >
+              <i data-lucide="share-2" class="w-4 h-4"></i> Partager
+            </button>
           <button onclick="editPassword({{ entry.id }}, '{{ entry.title }}', '{{ entry.url }}', '{{ entry.username }}', '{{ entry.email }}', '{{ entry.password }}')" class="text-orange-600 hover:text-orange-800" title="Modifier">
             <i data-lucide="edit-3"></i>
           </button>
           <button onclick="deletePassword({{ entry.id }})" class="text-red-600 hover:text-red-800" title="Supprimer">
             <i data-lucide="trash-2"></i>
           </button>
+
         </td>
       </tr>
       {% endfor %}
@@ -78,8 +84,8 @@
 
 </div>
 
-<!-- MODAL -->
-<!-- MODAL -->
+
+<!-- MODAL ajout -->
 <div id="addModal" class="fixed inset-0 bg-black bg-opacity-50 hidden justify-center items-center z-50">
   <div class="bg-white rounded-2xl w-full max-w-lg p-6 shadow-xl relative">
     <h2 class="text-2xl font-semibold mb-4 flex items-center gap-2">
@@ -113,7 +119,7 @@
       </div>
 
       <div class="flex justify-end gap-2 mt-6">
-        <button type="button" onclick="closeModal()" class="bg-gray-300 text-gray-800 px-4 py-2 rounded-md">
+        <button type="button" onclick="closeModal('addModal')" class="bg-gray-300 text-gray-800 px-4 py-2 rounded-md">
           Annuler
         </button>
         <button type="submit" class="bg-green-500 text-white px-4 py-2 rounded-md">
@@ -124,6 +130,28 @@
   </div>
 </div>
 
+    <!-- Modal de partage -->
+<div id="modal-share" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+  <div class="bg-white dark:bg-gray-800 rounded-lg shadow-lg w-full max-w-md p-6 relative">
+    <button type="button" id="close-share-modal" onclick="closeModal('modal-share')" class="absolute top-3 right-3 text-gray-400 hover:text-gray-700">
+      <i data-lucide="x" class="w-5 h-5"></i>
+    </button>
+    <h2 id="share-modal-title" class="text-lg font-semibold text-gray-800 dark:text-white mb-4">Partager</h2>
+    <form id="share-form" method="post">
+      <div class="mb-4">
+        <label for="duration" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Durée de validité</label>
+        <select id="duration" name="validity_hours" class="w-full p-2 mt-1 border rounded-md">
+          <option value="1">1 heure</option>
+          <option value="24">24 heures</option>
+        </select>
+      </div>
+      <div class="flex justify-end space-x-2">
+        <button type="button" id="cancel-share" class="px-4 py-2 bg-gray-200 text-gray-800 rounded hover:bg-gray-300 text-sm">Annuler</button>
+        <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 text-sm">Partager</button>
+      </div>
+    </form>
+  </div>
+</div>
 
 
 <script>
@@ -149,7 +177,7 @@ function editPassword(passwordId, title, url, username, email, password) {
     document.querySelector('[name="password"]').value = password;
 
     // Ouvrir le modal
-    openModal();
+    openModal('addModal');
 
     // Modifier la route d'envoi du formulaire pour la mise à jour
     document.querySelector('form').action = `/update_password/${passwordId}`;
@@ -195,14 +223,14 @@ function togglePasswordVisibility(inputId) {
 }
 
 
-  function openModal() {
-    document.getElementById('addModal').classList.remove('hidden');
-    document.getElementById('addModal').classList.add('flex');
+  function openModal(modalId) {
+    document.getElementById(modalId).classList.remove('hidden');
+    document.getElementById(modalId).classList.add('flex');
   }
 
-  function closeModal() {
-    document.getElementById('addModal').classList.add('hidden');
-    document.getElementById('addModal').classList.remove('flex');
+  function closeModal(modalId) {
+    document.getElementById(modalId).classList.add('hidden');
+    document.getElementById(modalId).classList.remove('flex');
 
     //Clean modal
 
@@ -212,5 +240,15 @@ function togglePasswordVisibility(inputId) {
     document.querySelector('[name="email"]').value = "";
     document.querySelector('[name="password"]').value = "";
   }
+
+//Gestion des modals de partage
+  function sharePassword(title, passwordId) {
+    document.getElementById('share-modal-title').textContent = `Partager : ${title}`;
+    document.getElementById('share-form').action = `/passwords/${passwordId}/share`;
+
+    openModal('modal-share');
+    lucide.createIcons();
+  }
+
 </script>
 {% endblock %}

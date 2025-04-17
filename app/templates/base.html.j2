@@ -1,4 +1,3 @@
-{# base.html #}
 <!DOCTYPE html>
 <html lang="fr">
 <head>
@@ -9,27 +8,32 @@
   <link href="https://unpkg.com/lucide@latest" rel="stylesheet" />
   <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
 </head>
-<body class="bg-gray-100 text-gray-900">
+<body class="bg-gray-100 text-gray-900 flex flex-col h-screen">
+
+  <!-- Navigation -->
   <nav class="bg-blue-600 p-4">
     <div class="flex justify-between items-center">
       <a href="/" class="text-white font-semibold text-xl">Password Vault</a>
       <div class="space-x-4">
-        <a href="/logout" class="text-white">Déconnection</a>
+        <a href="/logout" class="text-white">Déconnexion</a>
         <a href="/generator" class="text-white">Générateur</a>
         <a href="/dashboard" class="text-white">Tableau de bord</a>
       </div>
     </div>
   </nav>
 
-  <main class="container mx-auto my-6 p-6 bg-white rounded-lg shadow-lg">
+  <!-- Main Content -->
+  <main class="flex-grow container mx-auto my-6 p-6 bg-white rounded-lg shadow-lg">
     {% block content %}
     {% endblock %}
   </main>
 
+  <!-- Footer -->
   <footer class="bg-gray-800 text-white p-4 mt-6">
     <div class="text-center">
       <p>&copy; 2025 Password Vault. Tous droits réservés.</p>
     </div>
   </footer>
+
 </body>
 </html>

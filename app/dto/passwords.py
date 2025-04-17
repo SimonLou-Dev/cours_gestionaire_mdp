@@ -10,7 +10,7 @@ class PasswordOut(BaseModel):
     complexity: int
 
     class Config:
-        orm_mode = True  # Très important pour convertir depuis un modèle SQLAlchemy
+        from_attributes = True
 
 class PasswordCreate(BaseModel):
     title: str

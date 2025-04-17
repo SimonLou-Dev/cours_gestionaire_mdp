@@ -1,0 +1,54 @@
+{% extends "base.html.j2" %}
+
+{% block content %}
+
+<div class="bg-white p-8 rounded-lg shadow-lg max-w-lg w-full mx-auto">
+    <h2 class="text-2xl font-semibold text-center mb-4">Lien de partage généré</h2>
+
+    <p class="text-gray-700 text-center mb-6">Voici le lien à transmettre pour partager ce mot de passe :</p>
+
+    <div class="flex justify-center mb-4">
+        <div class="flex w-full max-w-lg">
+            <input
+                type="text"
+                id="shareLinkInput"
+                value="{{ share_link }}"
+                readonly
+                class="flex-1 px-4 py-2 border border-gray-300 rounded-l-md bg-gray-100 text-sm overflow-x-auto"
+            >
+            <button
+                id="copyButton"
+                onclick="copyToClipboard()"
+                class="px-4 py-2 bg-indigo-600 text-white rounded-r-md hover:bg-indigo-700 text-sm"
+            >
+                Copier
+            </button>
+        </div>
+    </div>
+
+
+    <p class="text-sm text-gray-500 text-center mb-4">
+        Expire le : <strong>{{ expiry_date.strftime('%d/%m/%Y à %H:%M') }}</strong>
+    </p>
+
+    <div class="text-center">
+        <a href="/" class="text-indigo-600 hover:underline">Retour au tableau de bord</a>
+    </div>
+</div>
+
+
+<script>
+        function copyToClipboard() {
+            const copyText = document.getElementById("shareLinkInput");
+            copyText.select();
+            copyText.setSelectionRange(0, 99999); // Pour mobile
+            document.execCommand("copy");
+
+            const btn = document.getElementById("copyButton");
+            btn.textContent = "Copié !";
+            setTimeout(() => {
+                btn.textContent = "Copier";
+            }, 1500);
+        }
+    </script>
+{% endblock %}

@@ -9,7 +9,7 @@ from starlette.templating import Jinja2Templates
 from app import database
 from app.models.user import User
 from app.services import crypto, totp, auth
-
+from app.services.crypto import PasswordAESEncryption
 
 serializer = URLSafeTimedSerializer("SECRET_KEY")
 templates = Jinja2Templates(directory="app/templates")
@@ -47,7 +47,7 @@ def login(request: Request, username: str = Form(...), password: str = Form(...)
         return templates.TemplateResponse("login.html.j2", {"request": request, "errors": errors})
 
     # Authentification réussie
-    aes_key = crypto.derive_key(password, bytes.fromhex(db_user.user_salt))
+    aes_key = PasswordAESEncryption.derive_key(password, bytes.fromhex(db_user.user_salt))
     response = RedirectResponse(url="/dashboard", status_code=status.HTTP_302_FOUND)
     auth.register_session_cookie(response, db_user, serializer)
 
@@ -94,7 +94,7 @@ async def register(
 
     qr_code = totp.generate_qr_code(totp_secret, username)
 
-    aes_key = crypto.derive_key(password, bytes.fromhex(new_user.user_salt))
+    aes_key = PasswordAESEncryption.derive_key(password, bytes.fromhex(new_user.user_salt))
     request.session["key"] = aes_key.hex()  # Stocker la clé AES dans la session
 
     return templates.TemplateResponse("register_done.html.j2", {

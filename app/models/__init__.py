@@ -1,2 +1,2 @@
 from .user import User
-from .password import PasswordEntry
+from .password import PasswordEntry, SharedPasswordEntry
